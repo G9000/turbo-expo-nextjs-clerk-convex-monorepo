@@ -1,7 +1,19 @@
 {
-  "name": "@packages/backend",
+  "name": "@repo/backend",
   "version": "1.0.0",
   "description": "",
+  "main": "./convex/_generated/api.js",
+  "types": "./convex/_generated/api.d.ts",
+  "exports": {
+    "./convex": {
+      "types": "./convex/_generated/api.d.ts",
+      "default": "./convex/_generated/api.js"
+    },
+    "./convex/dataModel": {
+      "types": "./convex/_generated/dataModel.d.ts",
+      "default": "./convex/_generated/dataModel.js"
+    }
+  },
   "scripts": {
     "dev": "convex dev",
     "setup": "convex dev --until-success"
@@ -12,7 +24,8 @@
     "convex": "^1.25.0",
     "openai": "^4.45.0"
   },
-   "devDependencies": {
+  "devDependencies": {
+    "@types/node": "^20",
     "typescript": "5.8.3"
   }
 }
