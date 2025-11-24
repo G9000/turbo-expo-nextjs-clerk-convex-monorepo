@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Accordion,
@@ -15,7 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Wallet, Pencil, Trash2 } from "lucide-react";
+import { Wallet, Pencil, Trash2, Plus } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currency";
 
 interface ExpenseListProps {
@@ -35,6 +29,7 @@ interface ExpenseListProps {
   getCategoryLabel: (category: string) => string;
   onEditEntry: (entry: ExpenseListProps["entries"][0]) => void;
   onDeleteEntry: (id: number) => void;
+  onAddExpense: () => void;
 }
 
 export function ExpenseList({
@@ -45,6 +40,7 @@ export function ExpenseList({
   getCategoryLabel,
   onEditEntry,
   onDeleteEntry,
+  onAddExpense,
 }: ExpenseListProps) {
   const actualEntries = entries.filter((e) => !e.isPlanned);
   const plannedEntries = entries.filter((e) => e.isPlanned);
@@ -55,7 +51,7 @@ export function ExpenseList({
     }
 
     const categories = Array.from(
-      new Set(filteredEntries.map((e) => e.category))
+      new Set(filteredEntries.map((e) => e.category)),
     );
 
     return (
@@ -66,7 +62,7 @@ export function ExpenseList({
       >
         {categories.map((category) => {
           const categoryEntries = filteredEntries.filter(
-            (e) => e.category === category
+            (e) => e.category === category,
           );
           const categoryTotal = categoryEntries.reduce((sum, entry) => {
             return sum + convertToBaseCurrency(entry.total, entry.currency);
@@ -145,11 +141,11 @@ export function ExpenseList({
                                         {
                                           month: "short",
                                           day: "numeric",
-                                        }
+                                        },
                                       )}
                                       {" - "}
                                       {new Date(
-                                        entry.dateTo
+                                        entry.dateTo,
                                       ).toLocaleDateString("en-US", {
                                         month: "short",
                                         day: "numeric",
@@ -163,7 +159,7 @@ export function ExpenseList({
                                         month: "short",
                                         day: "numeric",
                                         year: "numeric",
-                                      }
+                                      },
                                     )
                                   )}
                                 </p>
@@ -188,7 +184,7 @@ export function ExpenseList({
                                   ≈ {getCurrencySymbol(baseCurrency)}
                                   {convertToBaseCurrency(
                                     entry.total,
-                                    entry.currency
+                                    entry.currency,
                                   ).toFixed(2)}
                                 </p>
                               )}
@@ -224,58 +220,64 @@ export function ExpenseList({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Expenses</CardTitle>
-        <CardDescription>
-          {actualEntries.length} transactions • {plannedEntries.length} planned
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {entries.length === 0 ? (
-          <div className="text-center text-muted-foreground py-12">
-            <Wallet className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No entries yet. Add your first expense above!</p>
-          </div>
-        ) : (
-          <Tabs defaultValue="transactions" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="transactions">
-                Transactions ({actualEntries.length})
-              </TabsTrigger>
-              <TabsTrigger value="planned">
-                Planned ({plannedEntries.length})
-              </TabsTrigger>
-            </TabsList>
+    <div className="p-4 bg-background rounded-lg border border-border">
+      <div className="flex items-center justify-between mb-6">
+        <div className="grid gap-1">
+          <h3 className="font-mono text-lg font-bold">Expenses</h3>
+          <p className="text-xs text-muted-foreground">
+            {actualEntries.length} transactions • {plannedEntries.length}{" "}
+            planned
+          </p>
+        </div>
+        <Button onClick={onAddExpense} size="sm" className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add Expense
+        </Button>
+      </div>
 
-            <TabsContent value="transactions" className="mt-4">
-              {actualEntries.length === 0 ? (
-                <div className="text-center text-muted-foreground py-12">
-                  <Wallet className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No actual transactions yet.</p>
-                </div>
-              ) : (
-                <div className="max-h-[800px] overflow-y-auto pr-2">
-                  {renderEntries(actualEntries)}
-                </div>
-              )}
-            </TabsContent>
+      {entries.length === 0 ? (
+        <div className="text-center text-muted-foreground py-12 border rounded-lg border-dashed">
+          <Wallet className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>No entries yet. Add your first expense above!</p>
+        </div>
+      ) : (
+        <Tabs defaultValue="transactions" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="transactions">
+              Transactions ({actualEntries.length})
+            </TabsTrigger>
+            <TabsTrigger value="planned">
+              Planned ({plannedEntries.length})
+            </TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="planned" className="mt-4">
-              {plannedEntries.length === 0 ? (
-                <div className="text-center text-muted-foreground py-12">
-                  <Wallet className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No planned expenses yet.</p>
-                </div>
-              ) : (
-                <div className="max-h-[800px] overflow-y-auto pr-2">
-                  {renderEntries(plannedEntries)}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        )}
-      </CardContent>
-    </Card>
+          <TabsContent value="transactions" className="mt-4">
+            {actualEntries.length === 0 ? (
+              <div className="text-center text-muted-foreground py-12">
+                <Wallet className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No actual transactions yet.</p>
+              </div>
+            ) : (
+              <div className="max-h-[800px] overflow-y-auto pr-2">
+                {renderEntries(actualEntries)}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="planned" className="mt-4">
+            {plannedEntries.length === 0 ? (
+              <div className="text-center text-muted-foreground py-12">
+                <Wallet className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No planned expenses yet.</p>
+              </div>
+            ) : (
+              <div className="max-h-[800px] overflow-y-auto pr-2">
+                {renderEntries(plannedEntries)}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
+    </div>
   );
 }

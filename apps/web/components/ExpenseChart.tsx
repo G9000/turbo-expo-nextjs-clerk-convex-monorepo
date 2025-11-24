@@ -68,14 +68,12 @@ export function ExpenseChart({
   convertToBaseCurrency,
   getCategoryLabel,
 }: ExpenseChartProps) {
-  // Budget overview data
   const budgetData = [
     { name: "Spent", value: totalSpent, fill: "#ef4444" },
     { name: "Planned", value: totalPlanned, fill: "#f97316" },
     { name: "Remaining", value: Math.max(0, actualRemaining), fill: "#22c55e" },
   ];
 
-  // Category breakdown data
   const categoryMap = new Map<string, { spent: number; planned: number }>();
 
   entries.forEach((entry) => {
@@ -102,12 +100,12 @@ export function ExpenseChart({
 
   return (
     <div className="grid gap-6 lg:grid-cols-2 mb-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Budget Overview</CardTitle>
-          <CardDescription>How your budget is distributed</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div>
+        <div>
+          <div>Budget Overview</div>
+          <p>How your budget is distributed</p>
+        </div>
+        <div>
           <ChartContainer config={chartConfig} className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -116,7 +114,7 @@ export function ExpenseChart({
                     <ChartTooltipContent
                       formatter={(value, name) =>
                         `${name}: ${getCurrencySymbol(baseCurrency)}${Number(
-                          value
+                          value,
                         ).toFixed(2)}`
                       }
                     />
@@ -133,7 +131,7 @@ export function ExpenseChart({
                   paddingAngle={2}
                   label={({ name, value }) =>
                     `${name}: ${getCurrencySymbol(baseCurrency)}${value.toFixed(
-                      0
+                      0,
                     )}`
                   }
                 >
@@ -144,10 +142,10 @@ export function ExpenseChart({
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
+      <div>
         <CardHeader>
           <CardTitle>Category Breakdown</CardTitle>
           <CardDescription>Expenses by category</CardDescription>
@@ -170,7 +168,7 @@ export function ExpenseChart({
                     <ChartTooltipContent
                       formatter={(value, name) =>
                         `${name}: ${getCurrencySymbol(baseCurrency)}${Number(
-                          value
+                          value,
                         ).toFixed(2)}`
                       }
                     />
@@ -195,7 +193,7 @@ export function ExpenseChart({
             </ResponsiveContainer>
           </ChartContainer>
         </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

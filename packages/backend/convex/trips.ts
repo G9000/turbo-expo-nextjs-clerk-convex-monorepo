@@ -15,7 +15,8 @@ export const getUserTrips = query({
       .order("desc")
       .collect();
 
-    return trips;
+    // Filter out soft-deleted trips
+    return trips.filter((trip) => !trip.isDeleted);
   },
 });
 
@@ -30,8 +31,8 @@ export const getTrip = query({
 
     const trip = await ctx.db.get(args.tripId);
 
-    // Ensure the trip belongs to the current user
-    if (!trip || trip.userId !== identity.subject) {
+    // Ensure the trip belongs to the current user and is not deleted
+    if (!trip || trip.userId !== identity.subject || trip.isDeleted) {
       return null;
     }
 
@@ -103,6 +104,46 @@ export const getTripContributors = query({
       .collect();
 
     return contributors;
+  },
+});
+
+// Get participants for a trip with user details
+export const getTripParticipants = query({
+  args: { tripId: v.id("trips") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return [];
+    }
+
+    // Verify user owns the trip
+    const trip = await ctx.db.get(args.tripId);
+    if (!trip || trip.userId !== identity.subject) {
+      return [];
+    }
+
+    const participants = await ctx.db
+      .query("participants")
+      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
+      .collect();
+
+    // Enrich participants with user data
+    const enrichedParticipants = await Promise.all(
+      participants.map(async (participant) => {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_clerk_id", (q) => q.eq("clerkId", participant.userId))
+          .first();
+        return {
+          ...participant,
+          email: user?.email,
+          name: user?.name || "Unknown",
+          imageUrl: user?.imageUrl,
+        };
+      }),
+    );
+
+    return enrichedParticipants;
   },
 });
 

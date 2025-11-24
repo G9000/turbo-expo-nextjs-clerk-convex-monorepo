@@ -11,20 +11,12 @@ import { useBudgetCalculations } from "@/hooks/useBudgetCalculations";
 import { useBudgetAlerts } from "@/hooks/useBudgetAlerts";
 import { useActivityReminders } from "@/hooks/useActivityReminders";
 import { useExpenseForm } from "@/hooks/useExpenseForm";
-import {
-  EXPENSE_CATEGORIES,
-  getCategoryIcon,
-  getCategoryLabel,
-  getDateLabel,
-} from "@/lib/categories";
+import { getCategoryLabel } from "@/lib/categories";
 import { TripHeader } from "@/components/TripHeader";
-import { BudgetOverview } from "@/components/BudgetOverview";
-import { ExpenseChart } from "@/components/ExpenseChart";
-import { ExpenseForm } from "@/components/ExpenseForm";
-import { ExpenseList } from "@/components/ExpenseList";
+import { BudgetOverview } from "@/components/budget/BudgetOverview";
+import { ExpenseManager } from "@/components/ExpenseManager";
 import { TripSettingsDialog } from "@/components/TripSettingsDialog";
 import { ItineraryBoard } from "@/components/ItineraryBoard";
-import { UserProfile } from "@/components/UserProfile";
 import { toast } from "sonner";
 
 export default function TripPage() {
@@ -206,12 +198,15 @@ export default function TripPage() {
     }
   };
 
-  const handleAddContributor = async (name: string, amount: string) => {
+  const handleAddContributor = async (contributor: {
+    name: string;
+    amount: string;
+  }) => {
     try {
       await addContributorMutation({
         tripId,
-        name,
-        amount: parseFloat(amount),
+        name: contributor.name,
+        amount: parseFloat(contributor.amount),
       });
       toast.success("Contributor added!");
     } catch (error) {
@@ -335,8 +330,7 @@ export default function TripPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-950">
-      <UserProfile />
+    <div className="min-h-screen container mx-auto py-10 grid gap-8">
       <TripHeader
         tripTitle={trip.title}
         baseCurrency={baseCurrency}
@@ -344,6 +338,7 @@ export default function TripPage() {
         currentTab={currentTab}
         tripStartDate={trip.startDate || ""}
         tripEndDate={trip.endDate || ""}
+        tripId={trip._id}
         onTabChange={setCurrentTab}
         onRefreshRates={() => refreshRates(baseCurrency)}
         onBaseCurrencyChange={(currency) =>
@@ -392,109 +387,101 @@ export default function TripPage() {
         onSave={() => setIsTripSettingsOpen(false)}
       />
 
-      <div className="container mx-auto px-4 py-6 pb-20">
-        {currentTab === "budget" && (
-          <>
-            <BudgetOverview
+      {currentTab === "budget" && (
+        <>
+          <BudgetOverview
+            baseCurrency={baseCurrency}
+            allocatedBudget={trip.allocatedBudget?.toString() || "0"}
+            totalSpent={budgetCalcs.totalSpent}
+            totalPlanned={budgetCalcs.totalPlanned}
+            actualRemaining={budgetCalcs.actualRemaining}
+            projectedRemaining={budgetCalcs.projectedRemaining}
+            percentageSpent={budgetCalcs.percentageSpent}
+            lastUpdated={lastUpdated}
+            budgetContributors={contributors.map((c) => ({
+              id: c._id as unknown as number,
+              name: c.name,
+              amount: c.amount.toString(),
+            }))}
+            entries={transformedEntries}
+            convertToBaseCurrency={convertToBaseCurrency}
+            getCategoryLabel={getCategoryLabel}
+            onSetBudget={(amount) =>
+              handleUpdateTrip({ allocatedBudget: amount.toString() })
+            }
+          />
+
+          {/* {transformedEntries.length > 0 && (
+            <ExpenseChart
               baseCurrency={baseCurrency}
-              allocatedBudget={trip.allocatedBudget?.toString() || "0"}
               totalSpent={budgetCalcs.totalSpent}
               totalPlanned={budgetCalcs.totalPlanned}
               actualRemaining={budgetCalcs.actualRemaining}
-              projectedRemaining={budgetCalcs.projectedRemaining}
-              percentageSpent={budgetCalcs.percentageSpent}
-              lastUpdated={lastUpdated}
-              budgetContributors={contributors.map((c) => ({
-                id: c._id as unknown as number,
-                name: c.name,
-                amount: c.amount.toString(),
-              }))}
               entries={transformedEntries}
               convertToBaseCurrency={convertToBaseCurrency}
               getCategoryLabel={getCategoryLabel}
             />
+          )} */}
 
-            {transformedEntries.length > 0 && (
-              <ExpenseChart
-                baseCurrency={baseCurrency}
-                totalSpent={budgetCalcs.totalSpent}
-                totalPlanned={budgetCalcs.totalPlanned}
-                actualRemaining={budgetCalcs.actualRemaining}
-                entries={transformedEntries}
-                convertToBaseCurrency={convertToBaseCurrency}
-                getCategoryLabel={getCategoryLabel}
-              />
-            )}
-
-            <ExpenseForm
-              isOpen={expenseForm.isDialogOpen}
-              onOpenChange={expenseForm.setIsDialogOpen}
-              editingEntry={expenseForm.editingEntry}
-              name={expenseForm.name}
-              total={expenseForm.total}
-              currency={expenseForm.currency}
-              category={expenseForm.category}
-              date={expenseForm.date}
-              dateTo={expenseForm.dateTo}
-              isPlanned={expenseForm.isPlanned}
-              showCustomCategory={expenseForm.showCustomCategory}
-              customCategoryInput={expenseForm.customCategoryInput}
-              categories={
-                EXPENSE_CATEGORIES as unknown as ReadonlyArray<{
-                  readonly value: string;
-                  readonly label: string;
-                  readonly icon?: unknown;
-                }>
-              }
-              customCategories={customCategories.map((c) => c.name)}
-              onNameChange={expenseForm.setName}
-              onTotalChange={expenseForm.setTotal}
-              onCurrencyChange={expenseForm.setCurrency}
-              onCategoryChange={expenseForm.setCategory}
-              onDateChange={expenseForm.setDate}
-              onDateToChange={expenseForm.setDateTo}
-              onIsPlannedChange={expenseForm.setIsPlanned}
-              onShowCustomCategoryChange={expenseForm.setShowCustomCategory}
-              onCustomCategoryInputChange={expenseForm.setCustomCategoryInput}
-              onAddCustomCategory={handleAddCustomCategory}
-              onSubmit={handleSubmit}
-              getDateLabel={getDateLabel}
-            />
-
-            <ExpenseList
-              entries={transformedEntries}
-              baseCurrency={baseCurrency}
-              convertToBaseCurrency={convertToBaseCurrency}
-              getCategoryIcon={getCategoryIcon}
-              getCategoryLabel={getCategoryLabel}
-              onEditEntry={expenseForm.loadEntryForEdit}
-              onDeleteEntry={handleDeleteExpense}
-            />
-          </>
-        )}
-
-        {currentTab === "itinerary" && (
-          <ItineraryBoard
-            tripStartDate={trip.startDate || ""}
-            tripEndDate={trip.endDate || ""}
-            activities={activities.map((act) => ({
-              id: act._id as unknown as number,
-              title: act.title,
-              description: act.description,
-              time: act.time,
-              dayIndex: act.dayIndex,
-              notes: act.notes,
-              completed: act.completed,
-              remindMe: act.remindMe,
-              category: act.category,
-            }))}
-            onSetTripDates={handleSetTripDates}
-            onAddActivity={handleAddActivity}
-            onUpdateActivity={handleUpdateActivity}
-            onDeleteActivity={handleDeleteActivity}
+          <ExpenseManager
+            entries={transformedEntries}
+            baseCurrency={baseCurrency}
+            convertToBaseCurrency={convertToBaseCurrency}
+            customCategories={customCategories}
+            expenseFormState={{
+              isDialogOpen: expenseForm.isDialogOpen,
+              editingEntry: expenseForm.editingEntry,
+              name: expenseForm.name,
+              total: expenseForm.total,
+              currency: expenseForm.currency,
+              category: expenseForm.category,
+              date: expenseForm.date,
+              dateTo: expenseForm.dateTo,
+              isPlanned: expenseForm.isPlanned,
+              showCustomCategory: expenseForm.showCustomCategory,
+              customCategoryInput: expenseForm.customCategoryInput,
+            }}
+            expenseFormActions={{
+              setIsDialogOpen: expenseForm.setIsDialogOpen,
+              loadEntryForEdit: expenseForm.loadEntryForEdit,
+              setName: expenseForm.setName,
+              setTotal: expenseForm.setTotal,
+              setCurrency: expenseForm.setCurrency,
+              setCategory: expenseForm.setCategory,
+              setDate: expenseForm.setDate,
+              setDateTo: expenseForm.setDateTo,
+              setIsPlanned: expenseForm.setIsPlanned,
+              setShowCustomCategory: expenseForm.setShowCustomCategory,
+              setCustomCategoryInput: expenseForm.setCustomCategoryInput,
+            }}
+            onAddCustomCategory={handleAddCustomCategory}
+            onSubmit={handleSubmit}
+            onDeleteEntry={handleDeleteExpense}
           />
-        )}
-      </div>
+        </>
+      )}
+
+      {currentTab === "itinerary" && (
+        <ItineraryBoard
+          tripStartDate={trip.startDate || ""}
+          tripEndDate={trip.endDate || ""}
+          activities={activities.map((act) => ({
+            id: act._id as unknown as number,
+            title: act.title,
+            description: act.description,
+            time: act.time,
+            dayIndex: act.dayIndex,
+            notes: act.notes,
+            completed: act.completed,
+            remindMe: act.remindMe,
+            category: act.category,
+          }))}
+          onSetTripDates={handleSetTripDates}
+          onAddActivity={handleAddActivity}
+          onUpdateActivity={handleUpdateActivity}
+          onDeleteActivity={handleDeleteActivity}
+        />
+      )}
     </div>
   );
 }

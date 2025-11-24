@@ -4,26 +4,26 @@ export interface ExchangeRates {
 }
 
 export const SUPPORTED_CURRENCIES = [
-  { code: "USD", symbol: "$", name: "US Dollar" },
-  { code: "EUR", symbol: "€", name: "Euro" },
-  { code: "GBP", symbol: "£", name: "British Pound" },
-  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
-  { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
-  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
-  { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
-  { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
-  { code: "INR", symbol: "₹", name: "Indian Rupee" },
-  { code: "MXN", symbol: "$", name: "Mexican Peso" },
-  { code: "MYR", symbol: "RM", name: "Malaysian Ringgit" },
-  { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
+  { code: "USD", symbol: "$", name: "US Dollar", countryCode: "us" },
+  { code: "EUR", symbol: "€", name: "Euro", countryCode: "eu" },
+  { code: "GBP", symbol: "£", name: "British Pound", countryCode: "gb" },
+  { code: "JPY", symbol: "¥", name: "Japanese Yen", countryCode: "jp" },
+  { code: "CAD", symbol: "C$", name: "Canadian Dollar", countryCode: "ca" },
+  { code: "AUD", symbol: "A$", name: "Australian Dollar", countryCode: "au" },
+  { code: "CHF", symbol: "CHF", name: "Swiss Franc", countryCode: "ch" },
+  { code: "CNY", symbol: "¥", name: "Chinese Yuan", countryCode: "cn" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee", countryCode: "in" },
+  { code: "MXN", symbol: "$", name: "Mexican Peso", countryCode: "mx" },
+  { code: "MYR", symbol: "RM", name: "Malaysian Ringgit", countryCode: "my" },
+  { code: "SGD", symbol: "S$", name: "Singapore Dollar", countryCode: "sg" },
 ] as const;
 
 export async function fetchExchangeRates(
-  baseCurrency: string
+  baseCurrency: string,
 ): Promise<ExchangeRates> {
   try {
     const response = await fetch(
-      `https://api.exchangerate-api.com/v4/latest/${baseCurrency}`
+      `https://api.exchangerate-api.com/v4/latest/${baseCurrency}`,
     );
 
     if (!response.ok) {
@@ -78,7 +78,7 @@ export function convertCurrency(
   amount: number,
   fromCurrency: string,
   toCurrency: string,
-  rates: ExchangeRates
+  rates: ExchangeRates,
 ): number {
   if (fromCurrency === toCurrency) return amount;
 

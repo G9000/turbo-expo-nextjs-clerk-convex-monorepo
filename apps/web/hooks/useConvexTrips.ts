@@ -81,6 +81,21 @@ export function useTripContributors(tripId: Id<"trips"> | undefined) {
 }
 
 /**
+ * Hook to get and manage participants for a trip
+ */
+export function useTripParticipants(tripId: Id<"trips"> | undefined) {
+  const participants = useQuery(
+    api.trips.getTripParticipants,
+    tripId ? { tripId } : "skip",
+  );
+
+  return {
+    participants: participants ?? [],
+    isLoading: participants === undefined,
+  };
+}
+
+/**
  * Hook to get and manage custom categories for a trip
  */
 export function useTripCustomCategories(tripId: Id<"trips"> | undefined) {

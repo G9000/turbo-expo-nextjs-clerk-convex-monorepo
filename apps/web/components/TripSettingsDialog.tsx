@@ -68,7 +68,7 @@ export function TripSettingsDialog({
 
   const totalContributed = budgetContributors.reduce(
     (sum, c) => sum + parseFloat(c.amount || "0"),
-    0
+    0,
   );
 
   useEffect(() => {
@@ -117,7 +117,12 @@ export function TripSettingsDialog({
               <SelectContent>
                 {SUPPORTED_CURRENCIES.map((curr) => (
                   <SelectItem key={curr.code} value={curr.code}>
-                    {curr.symbol} {curr.code} - {curr.name}
+                    <span className="flex items-center gap-2">
+                      <span className={`fi fi-${curr.countryCode}`} />
+                      <span>
+                        {curr.symbol} {curr.code} - {curr.name}
+                      </span>
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

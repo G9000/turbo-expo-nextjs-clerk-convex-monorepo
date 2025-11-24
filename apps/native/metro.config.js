@@ -2,11 +2,13 @@
 
 const { getDefaultConfig } = require("expo/metro-config");
 const { FileStore } = require("metro-cache");
+const { withNativeWind } = require("nativewind/metro");
 const path = require("path");
 
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, "../..");
 
+/** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(projectRoot);
 
 // #1 - Watch all files in the monorepo
@@ -26,4 +28,4 @@ config.cacheStores = [
   }),
 ];
 
-module.exports = config;
+module.exports = withNativeWind(config);

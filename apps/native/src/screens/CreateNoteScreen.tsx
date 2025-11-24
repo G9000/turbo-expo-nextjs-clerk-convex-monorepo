@@ -13,7 +13,7 @@ import {
 import { RFValue } from "react-native-responsive-fontsize";
 import { AntDesign } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { api } from "@packages/backend/convex/_generated/api";
+import { api } from "@repo/backend/convex";
 import { useMutation, useQuery } from "convex/react";
 
 const { width } = Dimensions.get("window");

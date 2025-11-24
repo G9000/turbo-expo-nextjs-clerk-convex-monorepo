@@ -1,3 +1,4 @@
+import "./global.css";
 import { View, StatusBar, Platform } from "react-native";
 import { useFonts } from "expo-font";
 import { LogBox } from "react-native";
@@ -29,8 +30,8 @@ export default function App() {
 
   return (
     <ConvexClientProvider>
-      <View style={{ flex: 1 }}>
-        <View style={{ height: STATUS_BAR_HEIGHT, backgroundColor: "#0D87E1" }}>
+      <View className="flex-1">
+        <View style={{ height: STATUS_BAR_HEIGHT }} className="bg-blue-600">
           <StatusBar
             translucent
             backgroundColor={"#0D87E1"}

@@ -16,6 +16,12 @@ export const createTrip = mutation({
       throw new Error("Unauthenticated");
     }
 
+    // Get user data from users table
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
     const now = Date.now();
     const tripId = await ctx.db.insert("trips", {
       userId: identity.subject,
@@ -26,6 +32,15 @@ export const createTrip = mutation({
       endDate: args.endDate,
       createdAt: now,
       updatedAt: now,
+    });
+
+    // Add creator as a participant with owner role
+    await ctx.db.insert("participants", {
+      tripId,
+      userId: identity.subject,
+      role: "owner",
+      status: "accepted",
+      createdAt: now,
     });
 
     return tripId;
@@ -67,7 +82,7 @@ export const updateTrip = mutation({
   },
 });
 
-// Delete a trip (and all associated data)
+// Delete a trip (soft delete)
 export const deleteTrip = mutation({
   args: { tripId: v.id("trips") },
   handler: async (ctx, args) => {
@@ -81,44 +96,14 @@ export const deleteTrip = mutation({
       throw new Error("Trip not found or unauthorized");
     }
 
-    // Delete all associated expenses
-    const expenses = await ctx.db
-      .query("expenses")
-      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
-      .collect();
-    for (const expense of expenses) {
-      await ctx.db.delete(expense._id);
-    }
+    // Soft delete: mark as deleted instead of actually deleting
+    await ctx.db.patch(args.tripId, {
+      isDeleted: true,
+      deletedAt: Date.now(),
+      updatedAt: Date.now(),
+    });
 
-    // Delete all associated activities
-    const activities = await ctx.db
-      .query("activities")
-      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
-      .collect();
-    for (const activity of activities) {
-      await ctx.db.delete(activity._id);
-    }
-
-    // Delete all associated contributors
-    const contributors = await ctx.db
-      .query("budgetContributors")
-      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
-      .collect();
-    for (const contributor of contributors) {
-      await ctx.db.delete(contributor._id);
-    }
-
-    // Delete all associated custom categories
-    const categories = await ctx.db
-      .query("customCategories")
-      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
-      .collect();
-    for (const category of categories) {
-      await ctx.db.delete(category._id);
-    }
-
-    // Finally delete the trip
-    await ctx.db.delete(args.tripId);
+    return args.tripId;
   },
 });
 
